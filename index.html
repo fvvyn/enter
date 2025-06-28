@@ -163,8 +163,8 @@
     let lastX = 0, lastY = 0;
     let velX = 0, velY = 0;
 
-    // 🎯 感度高め！スマホはもっと高め！
-    const SPEED = window.innerWidth < 768 ? 0.025 : 0.015;
+    // 🎯 感度ちょい控えめに調整！
+    const SPEED = window.innerWidth < 768 ? 0.015 : 0.008;
     const DAMP = 0.95;
     let autoRotate = true;
 
@@ -225,11 +225,17 @@
           pivot.rotation.y += 0.009;
         }
 
-        // pivot.rotation.x = THREE.MathUtils.clamp(pivot.rotation.x, -Math.PI/2, Math.PI/2);
-      }
+        // ❗X軸が回りすぎたら正面に戻す
+        const minX = -Math.PI / 2;
+        const maxX = Math.PI / 2;
+        if (pivot.rotation.x < minX || pivot.rotation.x > maxX) {
+          pivot.rotation.x += (0 - pivot.rotation.x) * 0.1;
+        }
 
-      renderer.render(scene, camera);
+        renderer.render(scene, camera);
+      }
     }
+
     animate();
 
     window.addEventListener('resize', () => {
