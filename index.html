@@ -11,11 +11,9 @@
   <link rel="shortcut icon" href="favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <link rel="manifest" href="site.webmanifest" />
-
   <meta name="apple-mobile-web-app-title" content="fvvyn" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="msapplication-TileColor" content="#ffffff" />
-
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -50,7 +48,8 @@
       align-items: center;
       pointer-events: none;
     }
-    .overlay-container a { 
+
+    .overlay-container a {
       pointer-events: auto;
       font-weight: 800;
       font-style: italic;
@@ -58,7 +57,11 @@
       color: #222;
       transition: all 0.3s ease;
     }
-    .overlay-container a:hover { transform: scale(1.05); color: #000; }
+
+    .overlay-container a:hover {
+      transform: scale(1.05);
+      color: #000;
+    }
 
     .enter-link {
       font-size: 2.0rem !important;
@@ -67,7 +70,11 @@
       color: #222;
       transition: all 0.3s ease;
     }
-    .enter-link:hover { transform: scale(1.05); color: #000; }
+
+    .enter-link:hover {
+      transform: scale(1.05);
+      color: #000;
+    }
 
     .summer-drop-text {
       color: red;
@@ -83,7 +90,6 @@
 </head>
 
 <body class="relative">
-  <!-- ===================== UI ===================== -->
   <div class="overlay-container select-none">
     <a id="enterButton" href="https://fvvyn.stores.jp/" class="enter-link">ENTER</a>
     <a href="https://instagram.com/fvvyn_official" target="_blank">Instagram</a>
@@ -100,7 +106,6 @@
     <div class="mt-1">&copy; 2025 fvvyn</div>
   </footer>
 
-  <!-- =============== Three.js core =============== -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/RGBELoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -145,7 +150,6 @@
       });
 
       model.scale.setScalar(1.1);
-      model.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(model);
       const center = new THREE.Vector3();
       box.getCenter(center);
@@ -157,14 +161,11 @@
       scene.add(pivot);
     });
 
-    // ── 入力処理 ──
     const dom = renderer.domElement;
     let dragging = false;
     let lastX = 0, lastY = 0;
     let velX = 0, velY = 0;
-
-    // 🎯 感度ちょい控えめに調整！
-    const SPEED = window.innerWidth < 768 ? 0.015 : 0.008;
+    const SPEED = 0.008; // 感度控えめ
     const DAMP = 0.95;
     let autoRotate = true;
 
@@ -203,7 +204,6 @@
     dom.addEventListener('pointerup', () => dragging = false);
     dom.addEventListener('pointercancel', () => dragging = false);
 
-    // ── アニメーション ──
     function animate() {
       requestAnimationFrame(animate);
 
@@ -225,11 +225,12 @@
           pivot.rotation.y += 0.009;
         }
 
-        // ❗X軸が回りすぎたら正面に戻す
-        const minX = -Math.PI / 2;
-        const maxX = Math.PI / 2;
-        if (pivot.rotation.x < minX || pivot.rotation.x > maxX) {
-          pivot.rotation.x += (0 - pivot.rotation.x) * 0.1;
+        // 👇縦に回しすぎたときは正面に戻す
+        const limit = Math.PI / 2;
+        if (Math.abs(pivot.rotation.x) > limit) {
+          autoRotate = false;
+          velX = 0;
+          pivot.rotation.x += (0 - pivot.rotation.x) * 0.2;
         }
 
         renderer.render(scene, camera);
