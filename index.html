@@ -115,7 +115,6 @@
     renderer.outputEncoding = THREE.sRGBEncoding;
     document.body.appendChild(renderer.domElement);
 
-    // 背景グループ
     const bgGroup = new THREE.Group();
     scene.add(bgGroup);
 
@@ -129,7 +128,6 @@
       bgGroup.add(mesh);
     });
 
-    // ロゴグループ
     const logoGroup = new THREE.Group();
     logoGroup.position.set(0, 1, -4.8);
     scene.add(logoGroup);
@@ -154,17 +152,15 @@
       logoGroup.add(logo);
     });
 
-    // ライト
     scene.add(new THREE.AmbientLight(0xffffff, 0.8));
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
 
-    // 操作
     let yaw = 0, pitch = 0;
     let logoRotationY = 0;
-    const ROT_FACTOR = 0.002;
-    const LOGO_ROT_FACTOR = 0.003;
+    const ROT_FACTOR = 0.005;
+    const LOGO_ROT_FACTOR = 0.007;
     let dragging = false, startX = 0, startY = 0, startYaw = 0, startPitch = 0, startLogoY = 0;
     let autoRotate = true;
 
@@ -208,19 +204,15 @@
       autoRotate = true;
     });
 
-    // アニメーション
     (function animate() {
       requestAnimationFrame(animate);
-
       if (autoRotate && !dragging) {
         logoRotationY += 0.01;
         logoGroup.rotation.set(0, logoRotationY, 0);
       }
-
       renderer.render(scene, camera);
     })();
 
-    // リサイズ対応
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
