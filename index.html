@@ -115,7 +115,7 @@
     renderer.outputEncoding = THREE.sRGBEncoding;
     document.body.appendChild(renderer.domElement);
 
-    // 背景グループ
+    // 背景
     const bgGroup = new THREE.Group();
     scene.add(bgGroup);
 
@@ -129,7 +129,7 @@
       bgGroup.add(mesh);
     });
 
-    // ロゴグループ
+    // ロゴ
     const logoGroup = new THREE.Group();
     logoGroup.position.set(0, 1, -4.8);
     scene.add(logoGroup);
@@ -139,7 +139,7 @@
       logo.traverse((child) => {
         if (child.isMesh) {
           child.material = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(0xffffff),
+            color: 0xffffff,
             metalness: 1,
             roughness: 0.2,
             side: THREE.DoubleSide,
@@ -160,16 +160,22 @@
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
 
-    // 操作
+    // カメラ操作と慣性
     let yaw = 0, pitch = 0;
     let logoRotationY = 0;
+    let velocityX = 0, velocityY = 0, logoVelocityY = 0;
+
     const ROT_FACTOR = 0.002;
     const LOGO_ROT_FACTOR = 0.003;
-    let dragging = false, startX = 0, startY = 0, startYaw = 0, startPitch = 0, startLogoY = 0;
-    let autoRotate = true;
+    const FRICTION = 0.93;
+
+    let dragging = false;
+    let startX = 0, startY = 0, startYaw = 0, startPitch = 0, startLogoY = 0;
 
     const dom = renderer.domElement;
-    const getPointerPos = (e) => e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
+    const getPointerPos = (e) => e.touches
+      ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      : { x: e.clientX, y: e.clientY };
 
     dom.addEventListener('pointerdown', (e) => {
       const p = getPointerPos(e);
@@ -179,8 +185,10 @@
       startYaw = yaw;
       startPitch = pitch;
       startLogoY = logoRotationY;
+      velocityX = 0;
+      velocityY = 0;
+      logoVelocityY = 0;
       dom.setPointerCapture(e.pointerId);
-      autoRotate = false;
     });
 
     dom.addEventListener('pointermove', (e) => {
@@ -196,29 +204,40 @@
 
       logoRotationY = startLogoY + dx * LOGO_ROT_FACTOR;
       logoGroup.rotation.set(0, logoRotationY, 0);
+
+      velocityX = -dx;
+      velocityY = -dy;
+      logoVelocityY = dx;
     });
 
-    dom.addEventListener('pointerup', () => {
-      dragging = false;
-      autoRotate = true;
-    });
+    dom.addEventListener('pointerup', () => dragging = false);
+    dom.addEventListener('pointercancel', () => dragging = false);
 
-    dom.addEventListener('pointercancel', () => {
-      dragging = false;
-      autoRotate = true;
-    });
-
-    // アニメーション
-    (function animate() {
+    function animate() {
       requestAnimationFrame(animate);
 
-      if (autoRotate && !dragging) {
-        logoRotationY += 0.01;
+      if (!dragging) {
+        yaw += velocityX * ROT_FACTOR;
+        pitch += velocityY * ROT_FACTOR;
+        pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, pitch));
+        bgGroup.rotation.set(pitch, yaw, 0);
+
+        logoRotationY += logoVelocityY * LOGO_ROT_FACTOR;
         logoGroup.rotation.set(0, logoRotationY, 0);
+
+        velocityX *= FRICTION;
+        velocityY *= FRICTION;
+        logoVelocityY *= FRICTION;
+
+        if (Math.abs(velocityX) < 0.01) velocityX = 0;
+        if (Math.abs(velocityY) < 0.01) velocityY = 0;
+        if (Math.abs(logoVelocityY) < 0.01) logoVelocityY = 0;
       }
 
       renderer.render(scene, camera);
-    })();
+    }
+
+    animate();
 
     // リサイズ対応
     window.addEventListener('resize', () => {
@@ -230,4 +249,3 @@
 
 </body>
 </html>
-
